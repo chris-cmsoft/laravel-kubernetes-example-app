@@ -1,5 +1,5 @@
 # We need a reusable list of PHP extensions to install for all the targets
-ARG PHP_EXTS="bcmath ctype fileinfo mbstring pdo pdo_mysql dom intl"
+ARG PHP_EXTS="bcmath ctype fileinfo mbstring pdo pdo_mysql dom"
 
 # We need a reusable list of PHP extensions installable through pecl for all the targets
 ARG PHP_PECL_EXTS="redis"
@@ -18,7 +18,7 @@ RUN wget https://raw.githubusercontent.com/composer/getcomposer.org/76a7060ccb93
     && addgroup -S composer \
     && adduser -S composer -G composer \
     && chown -R composer /opt/apps/laravel-in-kubernetes \
-    && apk add --virtual build-dependencies --no-cache ${PHPIZE_DEPS} openssl ca-certificates libxml2-dev oniguruma-dev icu-dev \
+    && apk add --virtual build-dependencies --no-cache ${PHPIZE_DEPS} openssl ca-certificates libxml2-dev oniguruma-dev \
     && docker-php-ext-install -j$(nproc) ${PHP_EXTS} \
     && pecl install ${PHP_PECL_EXTS} \
     && docker-php-ext-enable ${PHP_PECL_EXTS} \
