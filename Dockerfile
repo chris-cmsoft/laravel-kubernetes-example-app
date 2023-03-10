@@ -1,5 +1,5 @@
 # We need a reusable list of PHP extensions to install for all the targets
-ARG PHP_EXTS="bcmath ctype fileinfo mbstring pdo pdo_mysql dom"
+ARG PHP_EXTS="bcmath ctype fileinfo mbstring pdo pdo_mysql dom intl"
 
 # We need a reusable list of PHP extensions installable through pecl for all the targets
 ARG PHP_PECL_EXTS="redis"
