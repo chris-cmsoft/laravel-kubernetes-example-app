@@ -1,0 +1,66 @@
+version: '3'
+
+services:
+    laravel.fpm:
+        build:
+            context: .
+            target: fpm_server
+        image: laravel-in-kubernetes/fpm_server
+        environment:
+            APP_DEBUG: "true"
+        volumes:
+            # Here we mount in our codebase so any changes are immediately reflected into the container
+            - '.:/opt/apps/laravel-in-kubernetes'
+        networks:
+            - laravel-in-kubernetes
+    laravel.web:
+        build:
+            context: .
+            target: web_server
+        image: laravel-in-kubernetes/web_server
+        ports:
+            - '8080:80'
+        environment:
+            # We need to pass in the new FOM hst as the name of the fpm container on port 9000
+            FPM_HOST: "laravel.fpm:9000"
+        volumes:
+            # Here we mount in our codebase so any changes are immediately reflected into the container
+            - './public:/opt/apps/laravel-in-kubernetes/public'
+        networks:
+            - laravel-in-kubernetes
+    laravel.cron:
+        build:
+            context: .
+            target: cron
+        image: laravel-in-kubernetes/cron
+        volumes:
+            # Here we mount in our codebase so any changes are immediately reflected into the container
+            - '.:/opt/apps/laravel-in-kubernetes'
+        networks:
+            - laravel-in-kubernetes
+    mysql:
+        image: 'mysql:8.0'
+        ports:
+            - '${FORWARD_DB_PORT:-3306}:3306'
+        environment:
+            MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_DATABASE: '${DB_DATABASE}'
+            MYSQL_USER: '${DB_USERNAME}'
+            MYSQL_PASSWORD: '${DB_PASSWORD}'
+            MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+        volumes:
+            - 'laravel-in-kubernetes-mysql:/var/lib/mysql'
+        networks:
+            - laravel-in-kubernetes
+        healthcheck:
+          test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
+          retries: 3
+          timeout: 5s
+
+# Create a bridged network to be used by containers.
+# This will allow us to easily target other containers in the same stack
+networks:
+    laravel-in-kubernetes:
+
+volumes:
+    laravel-in-kubernetes-mysql:
