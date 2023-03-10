@@ -26,13 +26,31 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_AUTH_SECRET }}
+
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout Source Code
         uses: actions/checkout@v3
 
+      - name: Pull Latest Images
+        run: |
+          docker pull ghcr.io/chris-cmsoft/laravel-kubernetes-example-app:latest || true
+
       # Runs a single command using the runners shell
-      - name: Build Docker Image for Code Base
+      - name: Build Docker Image
         run: |
           docker build . \
               --target code_base \
-              --tag code_base:${{ github.sha }}
+              --tag ghcr.io/chris-cmsoft/laravel-kubernetes-example-app:${{ github.sha }} \
+              --tag ghcr.io/chris-cmsoft/laravel-kubernetes-example-app:latest \
+              --cache-from ghcr.io/chris-cmsoft/laravel-kubernetes-example-app:latest
+
+      - name: Push Docker Image
+        run: |
+          docker push ghcr.io/chris-cmsoft/laravel-kubernetes-example-app:${{ github.sha }}
+          docker push ghcr.io/chris-cmsoft/laravel-kubernetes-example-app:latest
